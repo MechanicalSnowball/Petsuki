@@ -1,67 +1,11 @@
 use core::f32;
 
-use raylib::ffi::Vector2;
+mod functions;
+mod types;
+use functions::*;
+use types::*;
 
-use crate::PetState::{Grabbed, Moving, Still};
-
-#[derive(Debug)]
-enum PetState {
-    Still(f32, f32),
-    Moving(f32, f32),
-    Grabbed(f32, f32),
-}
-
-struct IndividualSpriteSize {
-    width: f32,
-    height: f32,
-    scale: f32,
-}
-
-trait OrthogonalMovement {
-    fn move_towards_orthogonal(
-        self,
-        target: Vector2,
-        max_distance: f32,
-        current_state: &mut PetState,
-    ) -> Vector2;
-}
-
-impl OrthogonalMovement for Vector2 {
-    fn move_towards_orthogonal(
-        self,
-        target: Vector2,
-        max_distance: f32,
-        current_state: &mut PetState,
-    ) -> Vector2 {
-        let mut moved_a_bit = Vector2::new(0.0, 0.0);
-        let dx = target.x - self.x;
-        let dy = target.y - self.y;
-        let close_enough = 5.0;
-
-        if dx.abs() >= close_enough {
-            moved_a_bit.x = self.x + (dx.signum()) * max_distance;
-            moved_a_bit.y = self.y;
-            *current_state = PetState::Moving(dx.signum(), 0.0);
-
-            moved_a_bit
-        } else if dy.abs() >= close_enough {
-            moved_a_bit.x = self.x;
-            moved_a_bit.y = self.y + (dy.signum()) * max_distance;
-            *current_state = PetState::Moving(0.0, dy.signum());
-
-            moved_a_bit
-        } else {
-            let direction = match current_state {
-                PetState::Moving(a, b) => (a, b),
-                PetState::Still(a, b) => (a, b),
-                PetState::Grabbed(a, b) => (a, b),
-            };
-            *current_state = PetState::Still(direction.0.clone(), direction.1.clone());
-
-            target
-        }
-    }
-}
+use crate::types::PetState::{Grabbed, Moving, Still};
 
 fn main() {
     use raylib::prelude::*;
@@ -214,97 +158,32 @@ fn main() {
         let mut d = rl.begin_drawing(&thread);
         d.clear_background(color::Color::BLANK);
 
+        let y_cut: f32 = match current_state {
+            Moving(1.0, 0.0) | Still(1.0, 0.0) => 31.0,
+            Moving(-1.0, 0.0) | Still(-1.0, 0.0) => 93.0,
+            Moving(0.0, 1.0) | Still(0.0, 1.0) => 62.0,
+            _ => 0.0,
+        };
+
         let slice_sprite_coords: (f32, f32) = match current_state {
-            Moving(1.0, 0.0) => {
-                let mut a = 0.0;
+            Moving(_, _) => {
+                animation_frames_counter += 1;
+                let x_cut = match animation_frames_counter {
+                    1..=7 => 0.0,
+                    8..=14 => 21.0,
+                    15..=21 => 42.0,
+                    22..=27 => 21.0,
+                    _ => {
+                        animation_frames_counter = 0;
+                        21.0
+                    }
+                };
 
-                if animation_frames_counter < 7 {
-                    a = 0.0;
-                    animation_frames_counter += 1;
-                } else if animation_frames_counter < 14 {
-                    a = 21.0;
-                    animation_frames_counter += 1;
-                } else if animation_frames_counter < 21 {
-                    a = 42.0;
-                    animation_frames_counter += 1;
-                } else if animation_frames_counter < 28 {
-                    a = 21.0;
-                    animation_frames_counter += 1;
-                } else {
-                    animation_frames_counter = 0;
-                }
-                (a, 31.0)
+                (x_cut, y_cut)
             }
 
-            Moving(-1.0, 0.0) => {
-                let mut a = 0.0;
+            Still(_, _) => (21.0, y_cut),
 
-                if animation_frames_counter < 7 {
-                    a = 0.0;
-                    animation_frames_counter += 1;
-                } else if animation_frames_counter < 14 {
-                    a = 21.0;
-                    animation_frames_counter += 1;
-                } else if animation_frames_counter < 21 {
-                    a = 42.0;
-                    animation_frames_counter += 1;
-                } else if animation_frames_counter < 28 {
-                    a = 21.0;
-                    animation_frames_counter += 1;
-                } else {
-                    animation_frames_counter = 0;
-                }
-                (a, 93.0)
-            }
-
-            Moving(0.0, 1.0) => {
-                let mut a = 0.0;
-
-                if animation_frames_counter < 7 {
-                    a = 0.0;
-                    animation_frames_counter += 1;
-                } else if animation_frames_counter < 14 {
-                    a = 21.0;
-                    animation_frames_counter += 1;
-                } else if animation_frames_counter < 21 {
-                    a = 42.0;
-                    animation_frames_counter += 1;
-                } else if animation_frames_counter < 28 {
-                    a = 21.0;
-                    animation_frames_counter += 1;
-                } else {
-                    animation_frames_counter = 0;
-                }
-
-                (a, 61.0)
-            }
-
-            Moving(0.0, -1.0) => {
-                let mut a = 0.0;
-
-                if animation_frames_counter < 7 {
-                    a = 0.0;
-                    animation_frames_counter += 1;
-                } else if animation_frames_counter < 14 {
-                    a = 21.0;
-                    animation_frames_counter += 1;
-                } else if animation_frames_counter < 21 {
-                    a = 42.0;
-                    animation_frames_counter += 1;
-                } else if animation_frames_counter < 28 {
-                    a = 21.0;
-                    animation_frames_counter += 1;
-                } else {
-                    animation_frames_counter = 0;
-                }
-
-                (a, 0.0)
-            }
-
-            Still(1.0, 0.0) => (21.0, 31.0),
-            Still(-1.0, 0.0) => (21.0, 93.0),
-            Still(0.0, 1.0) => (21.0, 62.0),
-            Still(0.0, -1.0) => (21.0, 0.0),
             _ => (21.0, 62.0),
         };
 
