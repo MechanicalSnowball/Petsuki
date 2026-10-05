@@ -1,4 +1,4 @@
-use crate::PetState;
+use crate::types::*;
 use raylib::ffi::Vector2;
 
 pub trait OrthogonalMovement {
@@ -25,22 +25,19 @@ impl OrthogonalMovement for Vector2 {
         if dx.abs() >= close_enough {
             moved_a_bit.x = self.x + (dx.signum()) * max_distance;
             moved_a_bit.y = self.y;
-            *current_state = PetState::Moving(dx.signum(), 0.0);
+            current_state.direction = (dx.signum(), 0.0);
+            current_state.action = Action::Moving;
 
             moved_a_bit
         } else if dy.abs() >= close_enough {
             moved_a_bit.x = self.x;
             moved_a_bit.y = self.y + (dy.signum()) * max_distance;
-            *current_state = PetState::Moving(0.0, dy.signum());
+            current_state.direction = (0.0, dy.signum());
+            current_state.action = Action::Moving;
 
             moved_a_bit
         } else {
-            let direction = match current_state {
-                PetState::Moving(a, b) => (a, b),
-                PetState::Still(a, b) => (a, b),
-                PetState::Grabbed(a, b) => (a, b),
-            };
-            *current_state = PetState::Still(direction.0.clone(), direction.1.clone());
+            current_state.action = Action::Still;
 
             target
         }

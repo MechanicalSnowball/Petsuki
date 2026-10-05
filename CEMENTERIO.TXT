@@ -403,3 +403,81 @@ pub struct IndividualSpriteSize {
     pub scale: f32,
 }
 
+
+    fn move_towards_orthogonal(
+        self,
+        target: Vector2,
+        max_distance: f32,
+        current_state: &mut PetState,
+    ) -> Vector2 {
+        let mut moved_a_bit = Vector2::new(0.0, 0.0);
+        let dx = target.x - self.x;
+        let dy = target.y - self.y;
+        let close_enough = 5.0;
+
+        if dx.abs() >= close_enough {
+            moved_a_bit.x = self.x + (dx.signum()) * max_distance;
+            moved_a_bit.y = self.y;
+            //*current_state = PetState::Moving(dx.signum(), 0.0);
+            current_state.direction = (dx.signum(), 0.0);
+            current_state.action = Action::Moving;
+
+            moved_a_bit
+        } else if dy.abs() >= close_enough {
+            moved_a_bit.x = self.x;
+            moved_a_bit.y = self.y + (dy.signum()) * max_distance;
+            //*current_state = PetState::Moving(0.0, dy.signum());
+            current_state.direction = (0.0, dy.signum());
+            current_state.action = Action::Moving;
+
+            moved_a_bit
+        } else {
+            /*
+            let direction = match current_state {
+                PetState::Moving(a, b) => (a, b),
+                PetState::Still(a, b) => (a, b),
+                PetState::Grabbed(a, b) => (a, b),
+            };
+            *current_state = PetState::Still(direction.0.clone(), direction.1.clone());*/
+            current_state.action = Action::Still;
+
+            target
+        }
+    }
+
+//OTHER SHOT AT THE ANIMATION THING
+            let x_cut = match mado_pet.action {
+            Moving => {
+                animation_frames_counter += 1;
+            
+                let x_cut = match animation_frames_counter {
+                    1..=7 => 0.0,
+                    8..=14 => 21.0,
+                    15..=21 => 42.0,
+                    22..=27 => 21.0,
+                    _ => {
+                        animation_frames_counter = 0;
+                        21.0
+                    }
+
+                };
+
+                x_cut
+            }
+
+            _ => {
+                animation_frames_counter = 0;
+                21.0
+            }
+
+[PROYECTO COMPILANDO SÓLIDO: Petsuki v2.0 - Arquitectura Desacoplada y Modular]
+- Entorno: LazyVim en Windows. Gestión de Git mediante consola nativa/PowerShell. Compilación optimizada en `--release` desploma consumo de CPU G4560 a ~0%.
+- src/types.rs: Contiene `pub enum Action { Still, Moving, Grabbed }` y el struct unificado `pub struct PetState { pub direction: (f32, f32), pub action: Action, pub width: f32, pub height: f32, pub scale: f32 }`. Datos 100% desacoplados: la dirección física es ortogonal a la acción de animación.
+- src/functions.rs: Implementación de físicas ortogonales en cruz (`move_towards_orthogonal` para `Vector2` basado en tipos FFI nativos). Modifica campos de forma lineal directa en el struct mutable. En la llegada, fija `.action = Action::Still` y conserva la memoria de `.direction` intacta.
+- Renderizado de Bajo Nivel (Optimizado):
+  * Eje Y (Fila): `match` plano basado en el pipe `|` (`Moving | Still`) que mapea la dirección a la Jump Table en un solo pase de CPU.
+  * Eje X (Fotograma): El motor se redujo a dos líneas matemáticas puras de tiempo constante O(1) libres de condicionales `if/else` o rangos:
+    `let sprite_index = (animation_frames_counter / 7) % 4;`
+    `let x_cut = [0.0, 21.0, 42.0, 21.0][sprite_index];`
+  * Control de Glitches: La rama por descarte (`_`) del match de la acción resetea de forma pasiva y automática el `animation_frames_counter = 0` al detenerse (Still/Grabbed) para garantizar caminatas suaves desde el frame cero.
+[ESTILO DE APRENDIZAJE: Enfoque conceptual analítico de bajo nivel. El usuario exige entender la matemática e impacto en hardware (Jump Tables, CPU). PROHIBIDO entregar código masticado. Trato directo.]

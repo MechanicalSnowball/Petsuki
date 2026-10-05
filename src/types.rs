@@ -1,11 +1,17 @@
 #[derive(Debug)]
-pub enum PetState {
-    Still(f32, f32),
-    Moving(f32, f32),
-    Grabbed(f32, f32),
+pub enum Action {
+    Still,
+    Moving,
+    Grabbed,
+    //Actioned
 }
 
-pub struct IndividualSpriteSize {
+//pub enum Effect {por hacer}
+
+pub struct PetState {
+    pub direction: (f32, f32),
+    pub action: Action,
+    //pub CurrentEffect: Effect,
     pub width: f32,
     pub height: f32,
     pub scale: f32,
