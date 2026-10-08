@@ -106,20 +106,13 @@ fn main() {
 
         let sprite_mado_slice = Rectangle::new(x_cut, y_cut, mado_pet.width, mado_pet.height);
 
-        let scaled_mado = Rectangle::new(
-            position_on_screen.x,
-            position_on_screen.y,
-            mado_pet.width * mado_pet.scale,
-            mado_pet.height * mado_pet.scale,
-        );
-
         let mut d = rl.begin_drawing(&thread);
         d.clear_background(color::Color::BLANK);
 
         d.draw_texture_pro(
             &sprite_sheet,
             sprite_mado_slice,
-            scaled_mado,
+            pet_area,
             (0.0, 0.0),
             0.0,
             Color::WHITE,
