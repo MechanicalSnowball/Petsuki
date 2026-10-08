@@ -61,11 +61,10 @@ fn main() {
             position_on_screen.x,
             position_on_screen.y,
             mado_pet.width * mado_pet.scale,
-            mado_pet.height * mado_pet.height,
+            mado_pet.height * mado_pet.scale,
         );
 
         let mouse_pos = device_state.get_mouse().coords;
-
         if is_mouse_on_bounded_area(mouse_pos, pet_area) {
             unsafe {
                 let state_flag: WindowState = std::mem::transmute(raw_passthrough_flag);
@@ -100,10 +99,6 @@ fn main() {
             (position_on_screen.y + speed.1),
         )
             .into();
-
-        let mut d = rl.begin_drawing(&thread);
-        d.clear_background(color::Color::BLANK);
-
         animation_frames_counter += 1;
         let sprite_index: usize = (animation_frames_counter / 7) % 4;
         let x_cut = 63.0;
@@ -117,6 +112,9 @@ fn main() {
             mado_pet.width * mado_pet.scale,
             mado_pet.height * mado_pet.scale,
         );
+
+        let mut d = rl.begin_drawing(&thread);
+        d.clear_background(color::Color::BLANK);
 
         d.draw_texture_pro(
             &sprite_sheet,
