@@ -1,11 +1,7 @@
 use core::f32;
 
-mod functions;
-mod types;
-
-use crate::Action::*;
-use functions::*;
-use types::*;
+use libraries::functions::*;
+use libraries::types::{Action::*, Effect::*, PetState};
 
 fn main() {
     use raylib::prelude::*;
@@ -29,6 +25,7 @@ fn main() {
     let mut mado_pet = PetState {
         direction: (0.0, 1.0),
         action: Still,
+        current_effect: ChairSpin,
         width: 21.0,
         height: 31.0,
         scale: 4.0,
@@ -65,15 +62,10 @@ fn main() {
     let mut rand_screen_pos: Vector2 = rl.get_window_position();
 
     //println!("wd: {}, hg: {}", scr_wd, scr_hg);
-
-    let si_esta_variable_no_existe_el_programa_explota: bool = false;
-
     let mut frame_counter: i32 = 0; //contaremos fps con esta cosa, y así medir tiempo, porque no se me ocurre una mejor manera, ok?
+    let mut rand_waiting: i32 = rl.get_random_value(180..=300);
     rl.set_target_fps(60);
-    while !rl.window_should_close()
-        && (si_esta_variable_no_existe_el_programa_explota
-            == si_esta_variable_no_existe_el_programa_explota)
-    {
+    while !rl.window_should_close() {
         let current_mouse_pos = rl.get_mouse_position();
         let delta_mouse_pos = current_mouse_pos - last_mouse_pos;
 
@@ -99,9 +91,8 @@ fn main() {
                 //porque es lo que nos permite agarrar a Mado.
                 last_mouse_pos = current_mouse_pos;
 
-                let rand_waiting: i32 = rl.get_random_value(180..=300);
-
                 if frame_counter > rand_waiting {
+                    rand_waiting = rl.get_random_value(180..=300);
                     frame_counter = 0;
 
                     rand_screen_pos = {
@@ -163,7 +154,7 @@ fn main() {
             _ => 0.0,
         };
 
-        let x_cut = match mado_pet.action {
+        let x_cut: f32 = match mado_pet.action {
             Moving => {
                 animation_frames_counter += 1;
                 let sprite_index: usize = (animation_frames_counter / 7) % 4;

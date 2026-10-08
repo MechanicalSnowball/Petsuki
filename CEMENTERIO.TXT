@@ -481,3 +481,44 @@ pub struct IndividualSpriteSize {
     `let x_cut = [0.0, 21.0, 42.0, 21.0][sprite_index];`
   * Control de Glitches: La rama por descarte (`_`) del match de la acción resetea de forma pasiva y automática el `animation_frames_counter = 0` al detenerse (Still/Grabbed) para garantizar caminatas suaves desde el frame cero.
 [ESTILO DE APRENDIZAJE: Enfoque conceptual analítico de bajo nivel. El usuario exige entender la matemática e impacto en hardware (Jump Tables, CPU). PROHIBIDO entregar código masticado. Trato directo.]
+
+
+NO LOGRÉ QUE ESTO FUNCIONARA PARA EL CHAIRBOUNCE
+            //let change_of_zero = (scr_hg as f32 - mado_pet.height) / 2.0;
+            //let asco = window_pos.y - change_of_zero;
+
+            /*
+            speed.1 *= ((scr_hg - scr_hg / 2).abs() as f32
+                - (window_pos.y - (scr_hg / 2) as f32).abs())
+            .signum();*/
+
+            //speed.1 *= (change_of_zero - asco.abs()).signum();
+
+            //speed.0 *= ((scr_wd.abs()) as f32 - (window_pos.x).abs()).signum();
+
+            /*println!(
+                "speed on x: {}, screen width: {}, window position: {}",
+                speed.0, scr_wd, window_pos.x
+            );*/
+            /*
+            println!(
+                "speed on y: {}, screen height: {}, window position: {}, difference: {}",
+                speed.1,
+                scr_hg,
+                window_pos.y,
+                (scr_hg.abs()) as f32 - (window_pos.y).abs()
+            );*/
+
+        //lo generó una ia, integrado solo por motivos de curiosidad, junto a eliminar la linea de
+        //d.clear_background(color::Color::BLANK);
+        {
+            d.draw_rectangle(
+                0,
+                0,
+                scr_wd + 1,
+                scr_hg,
+                Color::new(0, 0, 0, 45), // Cambia el 15 para ajustar la duración de la estela
+            );
+        }
+
+

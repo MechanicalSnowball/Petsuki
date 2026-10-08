@@ -1,7 +1,7 @@
 use crate::types::*;
 use raylib::ffi::Vector2;
 
-pub trait OrthogonalMovement {
+pub trait MoveCloser {
     fn move_towards_orthogonal(
         self,
         target: Vector2,
@@ -10,7 +10,7 @@ pub trait OrthogonalMovement {
     ) -> Vector2;
 }
 
-impl OrthogonalMovement for Vector2 {
+impl MoveCloser for Vector2 {
     fn move_towards_orthogonal(
         self,
         target: Vector2,

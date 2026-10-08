@@ -1,0 +1,9 @@
+[package]
+name = "slider_fullscreen"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+raylib = "6.0.0"
+libraries = { path = "../libraries" }
+device_query = "4.0.1"
