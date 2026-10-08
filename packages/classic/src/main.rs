@@ -25,7 +25,7 @@ fn main() {
     let mut mado_pet = PetState {
         direction: (0.0, 1.0),
         action: Still,
-        current_effect: ChairSpin,
+        current_effect: NoEffect,
         width: 21.0,
         height: 31.0,
         scale: 4.0,

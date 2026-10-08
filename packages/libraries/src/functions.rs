@@ -43,3 +43,17 @@ impl MoveCloser for Vector2 {
         }
     }
 }
+
+//puede ser reescrito usando .iter().any()
+pub fn is_mouse_on_any_pet(mouse_pos: (i32, i32), areas: &[PetStateEx]) -> bool {
+    for mado_pet in areas.iter() {
+        if mado_pet.x_position <= mouse_pos.0 as f32
+            && mouse_pos.0 as f32 <= mado_pet.x_position + (mado_pet.width * mado_pet.scale)
+            && mado_pet.y_position <= mouse_pos.1 as f32
+            && mouse_pos.1 as f32 <= mado_pet.y_position + (mado_pet.height * mado_pet.scale)
+        {
+            return true;
+        }
+    }
+    false
+}

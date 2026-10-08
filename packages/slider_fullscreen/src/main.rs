@@ -1,6 +1,9 @@
 use device_query::{DeviceQuery, DeviceState};
-use libraries::types::{Action::*, Effect::*, PetState};
-use raylib::ffi::Rectangle;
+use libraries::{
+    functions::is_mouse_on_any_pet,
+    types::{Action::*, Effect::*, PetStateEx},
+};
+use raylib::ffi::KeyboardKey::KEY_N;
 
 fn main() {
     use raylib::prelude::*;
@@ -36,36 +39,45 @@ fn main() {
         .new_sound("./assets_audio/yume_nikki_muri.mp3")
         .expect("No se pudo cargar efecto 'muri'");
 
-    let mado_pet = PetState {
+    let mado_instance = PetStateEx {
         direction: (0.0, 1.0),
         action: Still,
         current_effect: ChairSpin,
         width: 21.0,
         height: 31.0,
+        x_position: (scr_wd as f32 / 2.0 - (21.0 * 4.0)),
+        y_position: (scr_hg as f32 / 2.0 - (31.0 * 4.0)),
         scale: 4.0,
+        speed: (4.0, 4.0),
     };
 
-    let mut position_on_screen = Vector2::from((
-        ((scr_wd as f32 / 2.0 - (mado_pet.width * mado_pet.scale)) / 2.0),
-        ((scr_hg as f32 / 2.0 - (mado_pet.height * mado_pet.scale)) / 2.0),
-    ));
+    let mut instances_vec: Vec<PetStateEx> = Vec::new();
+    instances_vec.push(mado_instance);
+
     let mut animation_frames_counter = 0;
-    let mut speed: (f32, f32) = (4.0, 4.0);
     let raw_passthrough_flag = ConfigFlags::FLAG_WINDOW_MOUSE_PASSTHROUGH as u32;
 
     rl.set_target_fps(60);
     let device_state = DeviceState::new();
 
     while !rl.window_should_close() {
-        let pet_area = Rectangle::new(
-            position_on_screen.x,
-            position_on_screen.y,
-            mado_pet.width * mado_pet.scale,
-            mado_pet.height * mado_pet.scale,
-        );
+        if rl.is_key_pressed(KEY_N) {
+            instances_vec.push(PetStateEx {
+                direction: (0.0, 1.0),
+                action: Still,
+                current_effect: ChairSpin,
+                width: 21.0,
+                height: 31.0,
+                x_position: (scr_wd as f32 / 2.0 - (21.0 * 4.0)),
+                y_position: (scr_hg as f32 / 2.0 - (31.0 * 4.0)),
+                scale: 4.0,
+                speed: (4.0, 4.0),
+            });
+        }
 
         let mouse_pos = device_state.get_mouse().coords;
-        if is_mouse_on_bounded_area(mouse_pos, pet_area) {
+
+        if is_mouse_on_any_pet(mouse_pos, &instances_vec) {
             unsafe {
                 let state_flag: WindowState = std::mem::transmute(raw_passthrough_flag);
                 rl.clear_window_state(state_flag);
@@ -86,43 +98,45 @@ fn main() {
             }
         }
 
-        if (position_on_screen.x >= scr_wd as f32 - 64.0) || position_on_screen.x <= -12.0 {
-            speed.0 *= -1.0;
+        for mado_pet in instances_vec.iter_mut() {
+            if (mado_pet.x_position >= scr_wd as f32 - 64.0) || mado_pet.x_position <= -12.0 {
+                mado_pet.speed.0 *= -1.0;
+            }
+
+            if (mado_pet.y_position >= scr_hg as f32 - 108.0) || (mado_pet.y_position <= -12.0) {
+                mado_pet.speed.1 *= -1.0;
+            };
+
+            (mado_pet.x_position, mado_pet.y_position) = (
+                (mado_pet.x_position + mado_pet.speed.0),
+                (mado_pet.y_position + mado_pet.speed.1),
+            );
         }
-
-        if (position_on_screen.y >= scr_hg as f32 - 108.0) || (position_on_screen.y <= -12.0) {
-            speed.1 *= -1.0;
-        };
-
-        position_on_screen = (
-            (position_on_screen.x + speed.0),
-            (position_on_screen.y + speed.1),
-        )
-            .into();
-        animation_frames_counter += 1;
-        let sprite_index: usize = (animation_frames_counter / 7) % 4;
-        let x_cut = 63.0;
-        let y_cut = [0.0, 31.0, 62.0, 93.0][sprite_index];
-
-        let sprite_mado_slice = Rectangle::new(x_cut, y_cut, mado_pet.width, mado_pet.height);
-
         let mut d = rl.begin_drawing(&thread);
         d.clear_background(color::Color::BLANK);
 
-        d.draw_texture_pro(
-            &sprite_sheet,
-            sprite_mado_slice,
-            pet_area,
-            (0.0, 0.0),
-            0.0,
-            Color::WHITE,
-        );
-    }
-}
+        animation_frames_counter += 1;
 
-fn is_mouse_on_bounded_area(mouse_pos: (i32, i32), area: Rectangle) -> bool {
-    area.x <= mouse_pos.0 as f32
-        && mouse_pos.0 as f32 <= area.x + area.width
-        && area.y <= mouse_pos.1 as f32
-        && mouse_pos.1 as f32 <= area.y + area.height
+        for mado_pet in instances_vec.iter_mut() {
+            let sprite_index: usize = (animation_frames_counter / 7) % 4;
+            let x_cut = 63.0;
+            let y_cut = [0.0, 31.0, 62.0, 93.0][sprite_index];
+
+            let sprite_mado_slice = Rectangle::new(x_cut, y_cut, mado_pet.width, mado_pet.height);
+
+            d.draw_texture_pro(
+                &sprite_sheet,
+                sprite_mado_slice,
+                Rectangle::new(
+                    mado_pet.x_position,
+                    mado_pet.y_position,
+                    mado_pet.width * mado_pet.scale,
+                    mado_pet.height * mado_pet.scale,
+                ),
+                (0.0, 0.0),
+                0.0,
+                Color::WHITE,
+            );
+        }
+    }
 }
